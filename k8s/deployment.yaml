@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
       - name: fastapi
-        image: us-central1-docker.pkg.dev/keen-phalanx-473718-p1/mlops-mlflow/fastapi:latest
+        image: us-central1-docker.pkg.dev/lively-nimbus-473407-m9/mlops-mlflow/fastapi:latest
         ports:
         - containerPort: 8000
 ---
