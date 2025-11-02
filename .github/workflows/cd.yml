@@ -8,13 +8,13 @@ permissions:
   id-token: write
 
 env:
-  PROJECT_ID: clean-vista-473214-i6
+  PROJECT_ID: lively-nimbus-473407-m9
   AR_REGION: us-central1
-  AR_REPOSITORY:  iris-classifier-docker
-  IMAGE_NAME: iris-classifier-fastapi
-  GKE_CLUSTER: iris-classifier-cluster
+  AR_REPOSITORY:  mlops
+  IMAGE_NAME: fastapi
+  GKE_CLUSTER: mlops
   GKE_ZONE: us-central1
-  DEPLOYMENT_NAME: iris-classifier-fastapi
+  DEPLOYMENT_NAME: fastapi
   MANIFEST_PATH: k8s/deployment.yaml
   
 jobs:
