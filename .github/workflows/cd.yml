@@ -1,0 +1,93 @@
+name: cd.yml
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  id-token: write
+
+env:
+  PROJECT_ID: clean-vista-473214-i6
+  AR_REGION: us-central1
+  AR_REPOSITORY:  iris-classifier-docker
+  IMAGE_NAME: iris-classifier-fastapi
+  GKE_CLUSTER: iris-classifier-cluster
+  GKE_ZONE: us-central1
+  DEPLOYMENT_NAME: iris-classifier-fastapi
+  MANIFEST_PATH: k8s/deployment.yaml
+  
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+    
+      - name: Setup CML (Continuous Machine Learning)
+        uses: iterative/setup-cml@v2.0.1
+
+      - name: Install DVC
+        run: pip install dvc dvc-gs dvc[gcs]
+      
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+        
+      - name: Google Cloud Authentication
+        uses: 'google-github-actions/auth@v2'
+        with:
+          credentials_json: ${{ secrets.GCP_SA }}
+
+      - name: Pull data from dvc
+        run: dvc pull
+
+      - name: Configure Docker for Artifact Registry
+        run: gcloud auth configure-docker ${{ env.AR_REGION }}-docker.pkg.dev
+        
+      - name: Build and Push Docker Image to Artifact Registry
+        run: |
+          FULL_IMAGE_TAG="${{ env.AR_REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.AR_REPOSITORY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}"
+          LATEST_TAG="${{ env.AR_REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.AR_REPOSITORY }}/${{ env.IMAGE_NAME }}:latest"
+          
+          echo "Building image and tagging as :latest and :${{ github.sha }}"
+          docker build -t "${FULL_IMAGE_TAG}" -t "${LATEST_TAG}" .
+          docker push "${FULL_IMAGE_TAG}"
+          docker push "${LATEST_TAG}"
+          
+      - name: Get GKE Credentials (Configure kubectl)
+        uses: google-github-actions/get-gke-credentials@v2
+        with:
+          cluster_name: ${{ env.GKE_CLUSTER }}
+          location: ${{ env.GKE_ZONE }}
+
+      - name: Wait for 2 Minutes (Pre-Deployment Pause)
+        run: |
+          echo "Waiting 120 seconds for GKE API server stability..."
+          sleep 120
+
+      - name: Apply Kubernetes Manifest (Direct Apply)
+        run: |
+          MANIFEST_PATH=${{ env.MANIFEST_PATH }}
+          
+          echo "Applying deployment from ${MANIFEST_PATH}..."
+          kubectl apply -f ${MANIFEST_PATH}
+
+      - name: Verify Deployment Rollout Status
+        run: |
+          echo "Waiting for deployment ${{ env.DEPLOYMENT_NAME }} to complete rollout..."
+          # This command blocks until Pods are ready (checking the image tag update)
+          kubectl rollout status deployment/${{ env.DEPLOYMENT_NAME }} --timeout=5m
+          echo "Deployment successful!"
+
+      - name: Show Service Status
+        run: |
+          echo "Service Status (External IP):"
+          kubectl get service ${{ env.DEPLOYMENT_NAME }}-service
+          kubectl get nodes -o wide
+          
