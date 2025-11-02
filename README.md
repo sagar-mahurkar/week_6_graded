@@ -1,12 +1,16 @@
-# Graded Assignment 5
+# Graded Assignment 6
 
 ### Assignment Objectives
-Integrate MLFlow into the homework pipeline by Introducing hyper parameter tuning as part of training loop
+Building on top of last week’s Continuous Integration with GitHub Actions
 
-- Log Experiment parameters, eval metrics and models utilizing MLFlow
-- demonstrate comparing two experiments using Metric Visualization in MLFlow portal
+Develop and integrate Continuous Deployment using GitHub Actions for building the IRIS API using docker and deploying onto k8s (kubernetes) 
 
-- remove existing model logging dependency from DVC
+- Explain the difference between Kubernetes Pod and a Docker container as part of screencast
 
-- modify evaluation pipeline to fetch and utilize latest/best model from MLFlow model registry
-- (Optional) modify CI to fetch and utilize latest/best model from MLFlow model registry to run sanity checks.
+- Use GitHub workflows/actions to build the docker image using DockerFile
+
+- Push the image to Google Artifact Registry 
+
+- Setup GCP Service account as needed
+
+- Deploy it using Google Kubernetes Engine from GitHub Actions
