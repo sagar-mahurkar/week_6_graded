@@ -10,7 +10,7 @@ permissions:
 env:
   PROJECT_ID: lively-nimbus-473407-m9
   AR_REGION: us-central1
-  AR_REPOSITORY:  mlops
+  AR_REPOSITORY: mlops
   IMAGE_NAME: fastapi
   GKE_CLUSTER: mlops
   GKE_ZONE: us-central1
